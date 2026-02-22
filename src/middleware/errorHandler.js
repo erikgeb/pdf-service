@@ -11,7 +11,10 @@ export function errorHandler(err, req, res, next) {
   const message = status < 500 ? err.message : 'An unexpected error occurred';
 
   if (status >= 500) {
-    logger.error({ err, req: { method: req.method, url: req.url } }, 'Server error');
+    logger.error(
+      { err, cause: err.cause, req: { method: req.method, url: req.url } },
+      'Server error'
+    );
   }
 
   res.status(status).json({

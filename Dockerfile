@@ -10,15 +10,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
+
+# Download Chrome into /app/.puppeteer-cache so it can be copied to the runtime stage.
+# By default Puppeteer caches to ~/.cache/puppeteer (root's home here), which is
+# unreachable from the runtime stage. Setting PUPPETEER_CACHE_DIR keeps it in /app.
+ENV PUPPETEER_CACHE_DIR=/app/.puppeteer-cache
 RUN npm ci --omit=dev
 
 # ── Stage 2: runtime image ─────────────────────────────────────────────────────
 FROM node:20-bookworm-slim AS runtime
 
 # Install Chromium runtime system libraries
+# libgcc1 was renamed to libgcc-s1 in Debian Bookworm
+# libasound2 (ALSA) is required by Chrome but often omitted from minimal lists
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
+    libasound2 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
     libc6 \
@@ -28,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libexpat1 \
     libfontconfig1 \
     libgbm1 \
-    libgcc1 \
+    libgcc-s1 \
     libglib2.0-0 \
     libgtk-3-0 \
     libnspr4 \
@@ -49,7 +57,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libxss1 \
     libxtst6 \
-    lsb-release \
     wget \
     xdg-utils \
   && rm -rf /var/lib/apt/lists/*
@@ -59,12 +66,16 @@ WORKDIR /app
 # Create non-root user
 RUN groupadd --system pptruser && useradd --system --gid pptruser --create-home pptruser
 
-# Copy node_modules (includes bundled Chrome for Testing) from deps stage
+# Copy node_modules and the Chrome binary cache from the deps stage
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/.puppeteer-cache ./.puppeteer-cache
 
 # Copy application source
 COPY src/ ./src/
 COPY package.json ./
+
+# Tell Puppeteer where to find the Chrome binary at runtime
+ENV PUPPETEER_CACHE_DIR=/app/.puppeteer-cache
 
 # Owned by non-root user
 RUN chown -R pptruser:pptruser /app

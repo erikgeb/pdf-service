@@ -22,6 +22,7 @@ router.post('/', validate(pdfRequestSchema), async (req, res, next) => {
   } catch (err) {
     const error = createError(500, 'PDF generation failed');
     error.code = 'PDF_GENERATION_FAILED';
+    error.cause = err;
     next(error);
   }
 });
