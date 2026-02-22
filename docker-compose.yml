@@ -1,0 +1,22 @@
+services:
+  pdf-service:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      LOG_LEVEL: info
+      PDF_TIMEOUT_MS: 30000
+      MAX_BODY_SIZE: 5mb
+      PUPPETEER_NO_SANDBOX: "false"
+      SWAGGER_UI_ENABLED: "true"
+    cap_add:
+      - SYS_ADMIN
+    shm_size: 256mb
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

@@ -1,0 +1,10 @@
+node_modules/
+.env
+coverage/
+tests/
+*.test.js
+.git/
+*.md
+.gitignore
+docker-compose.yml
+vitest.config.js
