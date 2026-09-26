@@ -1,5 +1,7 @@
 # PDF Service
 
+[![Tests](https://github.com/erikgeb/pdf-service/actions/workflows/test.yml/badge.svg)](https://github.com/erikgeb/pdf-service/actions/workflows/test.yml)
+
 Stateless REST microservice: POST an HTML template + JSON data, get a PDF back.
 
 ## Quick start
