@@ -85,6 +85,16 @@ describe('POST /api/v1/pdf', () => {
     expect(res.status).toBe(500);
     expect(res.body.error.code).toBe('PDF_GENERATION_FAILED');
   });
+
+  it('returns 413 PAYLOAD_TOO_LARGE when request body is too large', async () => {
+    const hugeTemplate = 'x'.repeat(6 * 1024 * 1024);
+    const res = await request(app)
+      .post('/api/v1/pdf')
+      .send({ template: hugeTemplate });
+
+    expect(res.status).toBe(413);
+    expect(res.body.error.code).toBe('PAYLOAD_TOO_LARGE');
+  });
 });
 
 describe('GET /health', () => {
