@@ -1,11 +1,12 @@
 # ── Stage 1: install dependencies + download Chromium ─────────────────────────
-FROM node:20-bookworm-slim AS deps
+FROM node:26-bookworm-slim AS deps
 
 WORKDIR /app
 
 # Install Chromium system dependencies needed at build time for Puppeteer download
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    unzip \
     wget \
   && rm -rf /var/lib/apt/lists/*
 
@@ -16,9 +17,12 @@ COPY package*.json ./
 # unreachable from the runtime stage. Setting PUPPETEER_CACHE_DIR keeps it in /app.
 ENV PUPPETEER_CACHE_DIR=/app/.puppeteer-cache
 RUN npm ci --omit=dev
+# Puppeteer's lifecycle download is not reliable with production-only installs.
+# Install the browser explicitly so the cache copied to the runtime image exists.
+RUN rm -rf /app/.puppeteer-cache && npx puppeteer browsers install chrome
 
 # ── Stage 2: runtime image ─────────────────────────────────────────────────────
-FROM node:20-bookworm-slim AS runtime
+FROM node:26-bookworm-slim AS runtime
 
 # Install Chromium runtime system libraries
 # libgcc1 was renamed to libgcc-s1 in Debian Bookworm

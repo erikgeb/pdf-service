@@ -88,6 +88,6 @@ vi.mock('puppeteer', () => ({ default: { launch: vi.fn().mockResolvedValue(...) 
 ## Docker Notes
 
 - Multi-stage build: `deps` stage installs deps and downloads bundled Chromium; `runtime` stage copies only `node_modules` — no build tools in final image.
-- Base image: `node:20-bookworm-slim` — matches the OS expected by Puppeteer's bundled Chrome.
+- Base image: `node:26-bookworm-slim` — Puppeteer 25 requires Node 22.12 or newer and uses its bundled Chrome on Debian Bookworm.
 - Runs as non-root user `pptruser`. `--no-sandbox` is NOT needed when running as non-root.
 - `docker-compose.yml` sets `cap_add: SYS_ADMIN` and `shm_size: 256mb` (Docker's default `/dev/shm` of 64 MB causes Chrome crashes).
